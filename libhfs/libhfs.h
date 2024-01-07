@@ -22,6 +22,10 @@
 # include "hfs.h"
 # include "apple.h"
 
+# ifdef DEBUG
+#  include <stdlib.h>
+# endif
+
 extern int errno;
 
 # define ERROR(code, str)  \
