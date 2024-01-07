@@ -19,9 +19,7 @@
  * $Id: block.c,v 1.11 1998/11/02 22:08:52 rob Exp $
  */
 
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
+# include "config.h"
 
 # include <stdlib.h>
 # include <string.h>

@@ -19,16 +19,10 @@
  * $Id: data.c,v 1.7 1998/11/02 22:08:57 rob Exp $
  */
 
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
-
 # include <string.h>
 # include <time.h>
 
-# ifdef TM_IN_SYS_TIME
-#  include <sys/time.h>
-# endif
+# include <sys/time.h>
 
 # include "data.h"
 
@@ -432,8 +426,6 @@ int d_relstring(const char *str1, const char *str2)
 static
 void calctzdiff(void)
 {
-# ifdef HAVE_MKTIME
-
   time_t t;
   int isdst;
   struct tm tm;
@@ -452,12 +444,6 @@ void calctzdiff(void)
     }
   else
     tzdiff = 0;
-
-# else
-
-  tzdiff = 0;
-
-# endif
 }
 
 /*

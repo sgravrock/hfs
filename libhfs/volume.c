@@ -19,9 +19,7 @@
  * $Id: volume.c,v 1.12 1998/11/02 22:09:10 rob Exp $
  */
 
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
+# include "config.h"
 
 # include <stdlib.h>
 # include <string.h>

@@ -19,19 +19,8 @@
  * $Id: acconfig.h,v 1.5 1998/04/11 08:27:11 rob Exp $
  */
 
-/*****************************************************************************
- * Definitions selected automatically by `configure'                         *
- *****************************************************************************/
-@TOP@
-
 /* Define if you want to enable diagnostic debugging support. */
-#undef DEBUG
-
-@BOTTOM@
-
-/*****************************************************************************
- * End of automatically configured definitions                               *
- *****************************************************************************/
+/* #undef DEBUG */
 
 # ifdef DEBUG
 #  include <stdio.h>
