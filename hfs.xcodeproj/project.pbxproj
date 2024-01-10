@@ -267,7 +267,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/libhfs",
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = hfs;
 			};
 			name = Debug;
 		};
