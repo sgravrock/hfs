@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AAB6E0152B4B6DAB00F60FAB"
-               BuildableName = "hfs"
-               BlueprintName = "hfs"
+               BuildableName = "cli"
+               BlueprintName = "cli"
                ReferencedContainer = "container:hfs.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AAB6E0152B4B6DAB00F60FAB"
-            BuildableName = "hfs"
-            BlueprintName = "hfs"
+            BuildableName = "cli"
+            BlueprintName = "cli"
             ReferencedContainer = "container:hfs.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -69,8 +69,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AAB6E0152B4B6DAB00F60FAB"
-            BuildableName = "hfs"
-            BlueprintName = "hfs"
+            BuildableName = "cli"
+            BlueprintName = "cli"
             ReferencedContainer = "container:hfs.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

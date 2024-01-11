@@ -47,7 +47,7 @@
 			children = (
 				AAB6E01F2B4B6DF700F60FAB /* libhfs */,
 				AAB6E01D2B4B6DB900F60FAB /* New Group */,
-				AAB6E0172B4B6DAB00F60FAB /* hfs */,
+				AAB6E0172B4B6DAB00F60FAB /* cli */,
 				AA5E59C72B4B67C300C31DF7 /* Products */,
 				AAB6E0212B4B832600F60FAB /* Frameworks */,
 			);
@@ -61,12 +61,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		AAB6E0172B4B6DAB00F60FAB /* hfs */ = {
+		AAB6E0172B4B6DAB00F60FAB /* cli */ = {
 			isa = PBXGroup;
 			children = (
 				AAB6E0182B4B6DAB00F60FAB /* main.m */,
 			);
-			path = hfs;
+			path = cli;
 			sourceTree = "<group>";
 		};
 		AAB6E01D2B4B6DB900F60FAB /* New Group */ = {
@@ -87,9 +87,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AAB6E0152B4B6DAB00F60FAB /* hfs */ = {
+		AAB6E0152B4B6DAB00F60FAB /* cli */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AAB6E01A2B4B6DAB00F60FAB /* Build configuration list for PBXNativeTarget "hfs" */;
+			buildConfigurationList = AAB6E01A2B4B6DAB00F60FAB /* Build configuration list for PBXNativeTarget "cli" */;
 			buildPhases = (
 				AAB6E0122B4B6DAB00F60FAB /* Sources */,
 				AAB6E0132B4B6DAB00F60FAB /* Frameworks */,
@@ -99,7 +99,7 @@
 			);
 			dependencies = (
 			);
-			name = hfs;
+			name = cli;
 			productName = hfs;
 			productReference = AAB6E0162B4B6DAB00F60FAB /* hfs */;
 			productType = "com.apple.product-type.tool";
@@ -131,7 +131,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AAB6E0152B4B6DAB00F60FAB /* hfs */,
+				AAB6E0152B4B6DAB00F60FAB /* cli */,
 			);
 		};
 /* End PBXProject section */
@@ -295,7 +295,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AAB6E01A2B4B6DAB00F60FAB /* Build configuration list for PBXNativeTarget "hfs" */ = {
+		AAB6E01A2B4B6DAB00F60FAB /* Build configuration list for PBXNativeTarget "cli" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AAB6E01B2B4B6DAB00F60FAB /* Debug */,
