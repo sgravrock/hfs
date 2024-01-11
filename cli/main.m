@@ -10,6 +10,7 @@
 
 static void usage(const char *progname);
 static void hfs_perror(const char *prefix);
+static hfsvol *mount_first_partition(const char *path, int hfs_mode);
 static BOOL ls(hfsvol *vol, NSString *dir_path);
 
 int main(int argc, const char * argv[]) {
@@ -21,7 +22,7 @@ int main(int argc, const char * argv[]) {
         }
         
         const char *path = argv[1];
-        int partitionNum = 0;
+        int partitionNum = -1;
         
         if (argc > 2) {
             char *endp;
@@ -34,7 +35,9 @@ int main(int argc, const char * argv[]) {
             partitionNum = (int)tmp;
         }
         
-        hfsvol *vol = hfs_mount(path, partitionNum, HFS_MODE_RDONLY);
+        hfsvol *vol = partitionNum == -1
+            ? mount_first_partition(path, HFS_MODE_RDONLY)
+            : hfs_mount(path, partitionNum, HFS_MODE_RDONLY);
         
         if (!vol) {
             hfs_perror(path);
@@ -59,6 +62,27 @@ static void hfs_perror(const char *prefix) {
     } else {
         perror(prefix);
     }
+}
+
+static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
+    // Old Mac hard disk images can have an arbitrarily large number of partitions,
+    // but in practice high numbers are rare and the vast majority of media will be
+    // either floppy images (no partition table, libhfs models this as partition 0)
+    // or hard disk iamges that only have partition 1.
+    // If we haven't found anything by partition 1, it's likely that this isn't a
+    // valid disk image.
+    int maxpn = 10;
+    
+    for (int pn = 0; pn <= maxpn; pn++) {
+        hfsvol *result = hfs_mount(path, pn, hfs_mode);
+        
+        if (result) {
+            return result;
+        }
+    }
+    
+    fprintf(stderr, "Could not find a partition in %s. Either this isn't a useable disk image or the partition number is greater than 10. Try specifiying the partition number.\n", path);
+    exit(EXIT_FAILURE);
 }
 
 static BOOL ls(hfsvol *vol, NSString *dir_path) {
