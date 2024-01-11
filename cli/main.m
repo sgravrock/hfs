@@ -8,6 +8,7 @@
 #import <Foundation/Foundation.h>
 #import "../libhfs/hfs.h"
 
+static void usage(const char *progname);
 static void hfs_perror(const char *prefix);
 static BOOL ls(hfsvol *vol, NSString *dir_path);
 
@@ -16,14 +17,24 @@ int main(int argc, const char * argv[]) {
     
     @autoreleasepool {
         if (argc < 2) {
-            fprintf(stderr, "Usage: %s image-filename\n", argv[0]);
-            return EXIT_FAILURE;
+            usage(argv[0]);
         }
         
         const char *path = argv[1];
+        int partitionNum = 0;
         
-        // Assume partition 0 for now
-        hfsvol *vol = hfs_mount(path, 0, HFS_MODE_RDONLY);
+        if (argc > 2) {
+            char *endp;
+            unsigned long tmp = strtoul(argv[2], &endp, 10);
+            
+            if (*endp != '\0' || tmp > INT_MAX) {
+                usage(argv[0]);
+            }
+            
+            partitionNum = (int)tmp;
+        }
+        
+        hfsvol *vol = hfs_mount(path, partitionNum, HFS_MODE_RDONLY);
         
         if (!vol) {
             hfs_perror(path);
@@ -35,6 +46,11 @@ int main(int argc, const char * argv[]) {
     }
 
     return ok ? 0 : EXIT_FAILURE;
+}
+
+static void usage(const char *progname) {
+    fprintf(stderr, "Usage: %s image-filename [partition-number]\n", progname);
+    exit(EXIT_FAILURE);
 }
 
 static void hfs_perror(const char *prefix) {
