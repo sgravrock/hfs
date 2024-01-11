@@ -100,8 +100,18 @@ static BOOL ls(hfsvol *vol, NSString *dir_path) {
         NSString *path;
         NSString *name = [NSString stringWithCString:dirent.name encoding:NSMacOSRomanStringEncoding];
 
+        // libhfs expects the following path formats:
+        // * "" refers to a virtual root directory containing all mounted volumes
+        //   (not relevant here)
+        // * ":" refers to the root of the volume
+        // * All other paths starting with ":" are cwd-relative
+        // * Paths not containing any colons are interpreted as immediate children of the
+        //   root dir
+        // There does not appear to be any general support for absolute paths within the
+        // current volume, but since we never set the volume's cwd, we can use the
+        // relative syntax (":foo:bar") as if it was absolute.
         if ([dir_path isEqualToString:@":"]) {
-            path = name;
+            path = [NSString stringWithFormat:@":%@", name];
         } else {
             path = [NSString stringWithFormat:@"%@:%@", dir_path, name];
         }
