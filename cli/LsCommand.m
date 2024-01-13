@@ -65,9 +65,15 @@ static BOOL ls(hfsvol *vol, NSString *dir_path) {
         NSString *name = [NSString stringWithCString:dirent.name encoding:NSMacOSRomanStringEncoding];
 
         if ([name canBeConvertedToEncoding:NSUTF8StringEncoding]) {
-            printf("%s (%s)\n", [name UTF8String], dirent.flags & HFS_ISDIR ? "dir" : "file");
+            printf("%s ", [name UTF8String]);
         } else {
-            printf("(don't know how to print this name) (%s)\n", dirent.flags & HFS_ISDIR ? "dir" : "file");
+            fputs("(don't know how to print this name) ", stdout);
+        }
+        
+        if (dirent.flags & HFS_ISDIR) {
+            puts("(dir)\n");
+        } else {
+            printf("(type=%s creator=%s)\n", dirent.u.file.type, dirent.u.file.creator);
         }
     }
 

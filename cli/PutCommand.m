@@ -9,7 +9,7 @@
 }
 
 - (nonnull NSString *)usage {
-    return @"put local-path hfs-path [--text]";
+    return @"put local-path hfs-path type creator [--text]";
 }
 
 - (int)mountMode {
@@ -17,30 +17,31 @@
 }
 
 - (BOOL)executeOnVolume:(nonnull hfsvol *)vol withArgs:(nonnull NSArray<NSString *> *)args {
-    NSString *srcPath, *destPath;
     BOOL textMode;
     
-    if (args.count == 2) {
+    if (args.count == 4) {
         textMode = NO;
-    } else if (args.count == 3 && [args[2] isEqualToString:@"--text"]) {
+    } else if (args.count == 5 && [args[4] isEqualToString:@"--text"]) {
         textMode = YES;
     } else {
         fprintf(stderr, "Usage: %s\n", [self.usage UTF8String]);
         return NO;
     }
     
-    srcPath = args[0];
-    destPath = args[1];
+    NSString *srcPath = args[0];
+    NSString *destPath = args[1];
+    NSString *type = args[2];
+    NSString *creator = args[3];
 
     // TODO: de-duplicate path handling with ls and get
     if ([destPath characterAtIndex:0] != ':') {
         destPath = [NSString stringWithFormat:@":%@", destPath];
     }
 
-    return copy_in_data_fork(vol, srcPath, destPath, textMode);
+    return copy_in_data_fork(vol, srcPath, destPath, type, creator, textMode);
 }
 
-static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, BOOL textMode) {
+static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, NSString *type, NSString *creator, BOOL textMode) {
     NSError *error = nil;
     NSData *srcContents = [NSData dataWithContentsOfFile:srcPath options:0 error:&error];
     
@@ -49,8 +50,7 @@ static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath
         return NO;
     }
     
-    // TODO type and creator
-    hfsfile *destFile = hfs_create(vol, [destPath cStringUsingEncoding:NSMacOSRomanStringEncoding], "????", "????");
+    hfsfile *destFile = hfs_create(vol, [destPath cStringUsingEncoding:NSMacOSRomanStringEncoding], [type UTF8String], [creator UTF8String]);
     
     if (!destFile) {
         hfs_perror([destPath UTF8String]);
