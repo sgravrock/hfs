@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA52572C2B5330BB00F6F947 /* PutCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = AA52572B2B5330BB00F6F947 /* PutCommand.m */; };
 		AAB6E0192B4B6DAB00F60FAB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AAB6E0182B4B6DAB00F60FAB /* main.m */; };
 		AAB6E0232B4B832600F60FAB /* libhfs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB6E0222B4B832600F60FAB /* libhfs.a */; };
 		AAF22F852B52FB30007F521F /* LsCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF22F842B52FB30007F521F /* LsCommand.m */; };
@@ -27,6 +28,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AA52572A2B5330BB00F6F947 /* PutCommand.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PutCommand.h; sourceTree = "<group>"; };
+		AA52572B2B5330BB00F6F947 /* PutCommand.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PutCommand.m; sourceTree = "<group>"; };
 		AAB6E0162B4B6DAB00F60FAB /* hfs */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = hfs; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB6E0182B4B6DAB00F60FAB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AAB6E01F2B4B6DF700F60FAB /* libhfs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = libhfs; sourceTree = "<group>"; };
@@ -82,6 +85,8 @@
 				AAF22F872B52FE4A007F521F /* errors.m */,
 				AAF22F892B53076A007F521F /* GetCommand.h */,
 				AAF22F8A2B53076A007F521F /* GetCommand.m */,
+				AA52572A2B5330BB00F6F947 /* PutCommand.h */,
+				AA52572B2B5330BB00F6F947 /* PutCommand.m */,
 			);
 			path = cli;
 			sourceTree = "<group>";
@@ -161,6 +166,7 @@
 				AAF22F882B52FE4A007F521F /* errors.m in Sources */,
 				AAF22F852B52FB30007F521F /* LsCommand.m in Sources */,
 				AAF22F8B2B53076A007F521F /* GetCommand.m in Sources */,
+				AA52572C2B5330BB00F6F947 /* PutCommand.m in Sources */,
 				AAB6E0192B4B6DAB00F60FAB /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

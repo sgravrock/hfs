@@ -1,4 +1,5 @@
 #import "errors.h"
+#import "../libhfs/hfs.h"
 
 void hfs_perror(const char *prefix) {
     if (hfs_error) {

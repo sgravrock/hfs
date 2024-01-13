@@ -2,6 +2,7 @@
 #import "errors.h"
 #import "LsCommand.h"
 #import "GetCommand.h"
+#import "PutCommand.h"
 #import "../libhfs/hfs.h"
 
 static void usage(const char *progname, NSArray<id<Command>> *cmds);
@@ -13,18 +14,24 @@ int main(int argc, const char * argv[]) {
     @autoreleasepool {
         NSArray<id<Command>> *cmds = @[
             [[LsCommand alloc] init],
-            [[GetCommand alloc] init]
+            [[GetCommand alloc] init],
+            [[PutCommand alloc] init]
         ];
-        const char *path = argv[1];
+        
+        if (argc < 3) {
+            usage(argv[0], cmds);
+            return EXIT_FAILURE;
+        }
+        
+        const char *imagePath = argv[1];
         id<Command> cmd = first_matching_cmd(cmds, [NSString stringWithUTF8String:argv[2]]);
         
         if (!cmd) {
             usage(argv[0], cmds);
-            printf("no cmd\n");
             return EXIT_FAILURE;
         }
                 
-        hfsvol *vol = mount_first_partition(path, HFS_MODE_RDONLY);
+        hfsvol *vol = mount_first_partition(imagePath, cmd.mountMode);
         
         if (!vol) {
             return EXIT_FAILURE;

@@ -13,6 +13,10 @@ static BOOL ls(hfsvol *vol, NSString *dir_path);
     return @"ls [HFS path]";
 }
 
+- (int)mountMode {
+    return HFS_MODE_RDONLY;
+}
+
 - (BOOL)executeOnVolume:(hfsvol *)vol withArgs:(NSArray<NSString *> *)args {
     if (args.count > 1) {
         fprintf(stderr, "Usage: %s\n", [self.usage UTF8String]);

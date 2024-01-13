@@ -1,6 +1,6 @@
 #import "GetCommand.h"
-#import <sys/stat.h>
 #import "errors.h"
+#import "../libhfs/hfs.h"
 
 @implementation GetCommand
 
@@ -10,6 +10,10 @@
 
 - (nonnull NSString *)usage {
     return @"get hfs-path local-path [--text]";
+}
+
+- (int)mountMode {
+    return HFS_MODE_RDONLY;
 }
 
 - (BOOL)executeOnVolume:(nonnull hfsvol *)vol withArgs:(nonnull NSArray<NSString *> *)args {

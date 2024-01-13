@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSString *)name;
 - (NSString *)usage;
+- (int)mountMode;
 - (BOOL)executeOnVolume:(hfsvol *)vol withArgs:(NSArray<NSString *> *)args;
 
 @end
