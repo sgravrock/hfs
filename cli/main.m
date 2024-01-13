@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "errors.h"
 #import "LsCommand.h"
+#import "GetCommand.h"
 #import "../libhfs/hfs.h"
 
 static void usage(const char *progname, NSArray<id<Command>> *cmds);
@@ -10,7 +11,10 @@ static hfsvol *mount_first_partition(const char *path, int hfs_mode);
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        NSArray<id<Command>> *cmds = @[[[LsCommand alloc] init]];
+        NSArray<id<Command>> *cmds = @[
+            [[LsCommand alloc] init],
+            [[GetCommand alloc] init]
+        ];
         const char *path = argv[1];
         id<Command> cmd = first_matching_cmd(cmds, [NSString stringWithUTF8String:argv[2]]);
         
@@ -83,6 +87,7 @@ static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
         }
     }
     
+    // TODO: better error reporting, particularly when the image/device file couldn't be opened
     fprintf(stderr, "Could not find a partition in %s. Either this isn't a useable disk image or the partition number is too high\n", path);
     return NULL;
 }

@@ -11,6 +11,7 @@
 		AAB6E0232B4B832600F60FAB /* libhfs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB6E0222B4B832600F60FAB /* libhfs.a */; };
 		AAF22F852B52FB30007F521F /* LsCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF22F842B52FB30007F521F /* LsCommand.m */; };
 		AAF22F882B52FE4A007F521F /* errors.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF22F872B52FE4A007F521F /* errors.m */; };
+		AAF22F8B2B53076A007F521F /* GetCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF22F8A2B53076A007F521F /* GetCommand.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -35,6 +36,8 @@
 		AAF22F842B52FB30007F521F /* LsCommand.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LsCommand.m; sourceTree = "<group>"; };
 		AAF22F862B52FE4A007F521F /* errors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = errors.h; sourceTree = "<group>"; };
 		AAF22F872B52FE4A007F521F /* errors.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = errors.m; sourceTree = "<group>"; };
+		AAF22F892B53076A007F521F /* GetCommand.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GetCommand.h; sourceTree = "<group>"; };
+		AAF22F8A2B53076A007F521F /* GetCommand.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GetCommand.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +80,8 @@
 				AAF22F842B52FB30007F521F /* LsCommand.m */,
 				AAF22F862B52FE4A007F521F /* errors.h */,
 				AAF22F872B52FE4A007F521F /* errors.m */,
+				AAF22F892B53076A007F521F /* GetCommand.h */,
+				AAF22F8A2B53076A007F521F /* GetCommand.m */,
 			);
 			path = cli;
 			sourceTree = "<group>";
@@ -155,6 +160,7 @@
 			files = (
 				AAF22F882B52FE4A007F521F /* errors.m in Sources */,
 				AAF22F852B52FB30007F521F /* LsCommand.m in Sources */,
+				AAF22F8B2B53076A007F521F /* GetCommand.m in Sources */,
 				AAB6E0192B4B6DAB00F60FAB /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
