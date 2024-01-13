@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "errors.h"
+#import "util.h"
 #import "LsCommand.h"
 #import "GetCommand.h"
 #import "PutCommand.h"

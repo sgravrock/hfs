@@ -1,5 +1,5 @@
 #import "GetCommand.h"
-#import "errors.h"
+#import "util.h"
 #import "../libhfs/hfs.h"
 
 @implementation GetCommand
@@ -29,14 +29,8 @@
         return NO;
     }
     
-    srcPath = args[0];
-    destPath = args[1];
-    
-    // TODO: de-duplicate path handling with ls
-    if ([srcPath characterAtIndex:0] != ':') {
-        srcPath = [NSString stringWithFormat:@":%@", srcPath];
-    }
-
+    srcPath = qualify_path(args[0]);
+    destPath = args[1];    
     return copy_out_data_fork(vol, srcPath, destPath, textMode);
 }
 
@@ -45,7 +39,7 @@ static BOOL copy_out_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPat
     hfsfile *srcFile = hfs_open(vol, [srcPath cStringUsingEncoding:NSMacOSRomanStringEncoding]);
     
     if (!srcFile) {
-        hfs_perror([srcPath UTF8String]);
+        hfs_perror(srcPath);
         return NO;   
     }
     
@@ -82,7 +76,7 @@ static BOOL copy_out_raw(NSString *srcPath, NSString *destPath, hfsfile *srcFile
         chunklen = hfs_read(srcFile, buf, sizeof(buf));
         
         if (chunklen < 0) {
-            hfs_perror([srcPath UTF8String]);
+            hfs_perror(srcPath);
             return NO;
         } else if (chunklen > 0) {
             if (fwrite(buf, chunklen, 1, destFile) != 1) {
@@ -103,7 +97,7 @@ static BOOL copy_out_text(NSString *srcPath, NSString *destPath, hfsfile *srcFil
         chunklen = hfs_read(srcFile, buf, sizeof(buf) - 1);
         
         if (chunklen < 0) {
-            hfs_perror([srcPath UTF8String]);
+            hfs_perror(srcPath);
             return NO;
         } else if (chunklen > 0) {
             for (long i = 0; i < chunklen; i++) {

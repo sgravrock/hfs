@@ -1,5 +1,5 @@
 #import "LsCommand.h"
-#import "errors.h"
+#import "util.h"
 
 static BOOL ls(hfsvol *vol, NSString *dir_path);
 
@@ -23,31 +23,7 @@ static BOOL ls(hfsvol *vol, NSString *dir_path);
         return NO;
     }
     
-    // libhfs expects the following path formats:
-    // * "" refers to a virtual root directory containing all mounted volumes
-    //   (not relevant here)
-    // * ":" refers to the root of the volume
-    // * All other paths starting with ":" are cwd-relative
-    // * If a path contains colons but does not start with one, the first element
-    //   is a volume name
-    // * Paths not containing any colons are interpreted as immediate children of the
-    //   root dir
-    //
-    // Except for the last point, this is consistent with how Macintosh users would
-    // have understood paths in the pre-OSX days (to the extent that they thought
-    // about paths at all). However, it's ill suited to our purposes because there
-    // is only one volume, the user may not know the volume name, and there is no
-    // concept of a cwd.
-    //
-    // To make things more convenient, we assume that all paths are relative to the
-    // volume root regardless of whether or not they start with a colon.
-
-    NSString *path = args.count == 0 ? @":" : args[0];
-    
-    if ([path characterAtIndex:0] != ':') {
-        path = [NSString stringWithFormat:@":%@", path];
-    }
-    
+    NSString *path = qualify_path(args.count == 0 ? @":" : args[0]);
     return ls(vol, path);
 }
 
@@ -57,7 +33,7 @@ static BOOL ls(hfsvol *vol, NSString *dir_path) {
     hfsdir *dir = hfs_opendir(vol, [dir_path cStringUsingEncoding:NSMacOSRomanStringEncoding]);
 
     if (!dir) {
-        hfs_perror([dir_path UTF8String]);
+        hfs_perror(dir_path);
         return NO;
     }
 
@@ -80,7 +56,7 @@ static BOOL ls(hfsvol *vol, NSString *dir_path) {
     // hfs_readdir sets errno to ENOENT at end of dir.
     // Anything else is an actual error.
     if (errno != ENOENT) {
-        hfs_perror(dir_path ? [dir_path UTF8String] : "root");
+        hfs_perror(dir_path ? dir_path : @"root");
         return NO;
     }
 

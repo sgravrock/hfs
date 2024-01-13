@@ -1,5 +1,5 @@
 #import "PutCommand.h"
-#import "errors.h"
+#import "util.h"
 #import "../libhfs/hfs.h"
 
 @implementation PutCommand
@@ -29,14 +29,9 @@
     }
     
     NSString *srcPath = args[0];
-    NSString *destPath = args[1];
+    NSString *destPath = qualify_path(args[1]);
     NSString *type = args[2];
     NSString *creator = args[3];
-
-    // TODO: de-duplicate path handling with ls and get
-    if ([destPath characterAtIndex:0] != ':') {
-        destPath = [NSString stringWithFormat:@":%@", destPath];
-    }
 
     return copy_in_data_fork(vol, srcPath, destPath, type, creator, textMode);
 }
@@ -53,7 +48,7 @@ static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath
     hfsfile *destFile = hfs_create(vol, [destPath cStringUsingEncoding:NSMacOSRomanStringEncoding], [type UTF8String], [creator UTF8String]);
     
     if (!destFile) {
-        hfs_perror([destPath UTF8String]);
+        hfs_perror(destPath);
         return NO;
     }
     
@@ -75,7 +70,7 @@ static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath
 
 static BOOL copy_in_raw(NSData *srcContents, NSString *destPath, hfsfile *destFile) {
     if (hfs_write(destFile, srcContents.bytes, srcContents.length) == -1) {
-        hfs_perror([destPath UTF8String]);
+        hfs_perror(destPath);
         return NO;
     }
     
@@ -99,7 +94,7 @@ static BOOL copy_in_text(NSString *srcPath, NSData *srcContents, NSString *destP
     }
     
     if (hfs_write(destFile, converted, strlen(converted)) == -1) {
-        hfs_perror([destPath UTF8String]);
+        hfs_perror(destPath);
         return NO;
     }
     
