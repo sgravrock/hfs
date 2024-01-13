@@ -1,73 +1,70 @@
-//
-//  main.m
-//  hfs
-//
-//  Created by Stephen Gravrock on 1/7/24.
-//
-
 #import <Foundation/Foundation.h>
+#import "errors.h"
+#import "LsCommand.h"
 #import "../libhfs/hfs.h"
 
-static void usage(const char *progname);
-static void hfs_perror(const char *prefix);
+static void usage(const char *progname, NSArray<id<Command>> *cmds);
+static id<Command> first_matching_cmd(NSArray<id<Command>> *cmds, NSString *name);
+static NSArray<NSString *> *array_from_argv(const char **argv);
 static hfsvol *mount_first_partition(const char *path, int hfs_mode);
-static void inner_cli(hfsvol *vol);
-static void inner_usage(void);
-static NSString *readline(void);
-static void ls(hfsvol *vol, NSString *dir_path);
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        if (argc < 2) {
-            usage(argv[0]);
-        }
-        
+        NSArray<id<Command>> *cmds = @[[[LsCommand alloc] init]];
         const char *path = argv[1];
-        int partitionNum = -1;
+        id<Command> cmd = first_matching_cmd(cmds, [NSString stringWithUTF8String:argv[2]]);
         
-        if (argc > 2) {
-            char *endp;
-            unsigned long tmp = strtoul(argv[2], &endp, 10);
-            
-            if (*endp != '\0' || tmp > INT_MAX) {
-                usage(argv[0]);
-            }
-            
-            partitionNum = (int)tmp;
+        if (!cmd) {
+            usage(argv[0], cmds);
+            printf("no cmd\n");
+            return EXIT_FAILURE;
+        }
+                
+        hfsvol *vol = mount_first_partition(path, HFS_MODE_RDONLY);
+        
+        if (!vol) {
+            return EXIT_FAILURE;
         }
         
-        hfsvol *vol;
+        BOOL ok = [cmd executeOnVolume:vol withArgs:array_from_argv(argv + 3)];
         
-        if (partitionNum == -1) {
-            vol = mount_first_partition(path, HFS_MODE_RDONLY); // exits on failure
-        } else {
-            vol = hfs_mount(path, partitionNum, HFS_MODE_RDONLY);
-            
-            if (!vol) {
-                hfs_perror(path);
-                return EXIT_FAILURE;
-            }
-        }
-
-        inner_cli(vol);
         hfs_umount(vol);
+        return ok ? 0 : EXIT_FAILURE;
     }
-
-    return 0;
 }
 
-static void usage(const char *progname) {
-    fprintf(stderr, "Usage: %s image-filename [partition-number]\n", progname);
+static void usage(const char *progname, NSArray<id<Command>> *cmds) {
+    fprintf(stderr, "Usage: %s image-filename [partition-number] command [args...]\n\n", progname);
+    fprintf(stderr, "Commands:\n");
+    
+    for (id<Command> cmd in cmds) {
+        fprintf(stderr, "%s\n", [[cmd usage] UTF8String]);
+    }
+    
     exit(EXIT_FAILURE);
 }
 
-static void hfs_perror(const char *prefix) {
-    if (hfs_error) {
-        fprintf(stderr, "%s: %s\n", prefix, hfs_error);
-    } else {
-        perror(prefix);
+static id<Command> first_matching_cmd(NSArray<id<Command>> *cmds, NSString *name) {
+    for (id<Command> cmd in cmds) {
+        if ([cmd.name isEqualToString:name]) {
+            return cmd;
+        }
     }
+    
+    return nil;
 }
+
+static NSArray<NSString *> *array_from_argv(const char **argv) {
+    NSMutableArray *result = [NSMutableArray array];
+    
+    while (*argv) {
+        [result addObject:[NSString stringWithUTF8String:*argv]];
+        argv++;
+    }
+    
+    return result;
+}
+
 
 static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
     // Old Mac hard disk images can have an arbitrarily large number of partitions,
@@ -86,101 +83,6 @@ static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
         }
     }
     
-    fprintf(stderr, "Could not find a partition in %s. Either this isn't a useable disk image or the partition number is greater than 10. Try specifiying the partition number.\n", path);
-    exit(EXIT_FAILURE);
-}
-
-static void inner_cli(hfsvol *vol) {
-    NSString *cmd;
-    printf("> ");
-    fflush(stdout);
-    
-    while ((cmd = readline()) != NULL) {
-        if ([cmd isEqualToString:@"ls"]) {
-            ls(vol, @":");
-        } else if ([cmd hasPrefix:@"ls "] && cmd.length > 3) {
-            NSString *path = [cmd substringFromIndex: 3];
-            ls(vol, path);
-        } else {
-            inner_usage();
-        }
-        
-        printf("> ");
-        fflush(stdout);
-    }
-}
-
-static void inner_usage(void) {
-    puts("Commands:");
-    puts("ls                   list the root directory");
-    puts("ls :dir1:dir2:dir3   list a specific directory");
-    puts("help                 show this help");
-    puts("");
-    puts("ctrl-d to exit");
-}
-
-static NSString *readline(void) {
-    // Just use a big buffer and bail if the command doesn't fit.
-    // This is easier than trying to deal with scenarios where e.g a Unicode character
-    // is split between two reads, and the internal CLI is temporary anyway.
-    const int bufsz = 1024; // fairly arbitrary
-    char buf[bufsz];
-    
-    if (!fgets(buf, bufsz, stdin)) {
-        return nil;
-    }
-    
-    char *nl = strchr(buf, '\n');
-    
-    if (!nl) {
-        fprintf(stderr, "Command too long\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    *nl = '\0';
-    return [NSString stringWithUTF8String:buf];
-}
-
-static void ls(hfsvol *vol, NSString *dir_path) {
-    hfsdirent dirent;
-
-    hfsdir *dir = hfs_opendir(vol, [dir_path cStringUsingEncoding:NSMacOSRomanStringEncoding]);
-
-    if (!dir) {
-        hfs_perror([dir_path UTF8String]);
-        return;
-    }
-
-    while (hfs_readdir(dir, &dirent) == 0) {
-        NSString *path;
-        NSString *name = [NSString stringWithCString:dirent.name encoding:NSMacOSRomanStringEncoding];
-
-        // libhfs expects the following path formats:
-        // * "" refers to a virtual root directory containing all mounted volumes
-        //   (not relevant here)
-        // * ":" refers to the root of the volume
-        // * All other paths starting with ":" are cwd-relative
-        // * Paths not containing any colons are interpreted as immediate children of the
-        //   root dir
-        // There does not appear to be any general support for absolute paths within the
-        // current volume, but since we never set the volume's cwd, we can use the
-        // relative syntax (":foo:bar") as if it was absolute.
-        if ([dir_path isEqualToString:@":"]) {
-            path = [NSString stringWithFormat:@":%@", name];
-        } else {
-            path = [NSString stringWithFormat:@"%@:%@", dir_path, name];
-        }
-
-        if ([path canBeConvertedToEncoding:NSUTF8StringEncoding]) {
-            printf("%s (%s)\n", [path UTF8String], dirent.flags & HFS_ISDIR ? "dir" : "file");
-        } else {
-            printf("(don't know how to print this) (%s)\n", dirent.flags & HFS_ISDIR ? "dir" : "file");
-        }
-    }
-
-    if (errno != ENOENT) {
-        hfs_perror(dir_path ? [dir_path UTF8String] : "root");
-    }
-
-    hfs_closedir(dir);
+    fprintf(stderr, "Could not find a partition in %s. Either this isn't a useable disk image or the partition number is too high\n", path);
+    return NULL;
 }

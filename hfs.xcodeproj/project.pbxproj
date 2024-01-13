@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		AAB6E0192B4B6DAB00F60FAB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = AAB6E0182B4B6DAB00F60FAB /* main.m */; };
 		AAB6E0232B4B832600F60FAB /* libhfs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB6E0222B4B832600F60FAB /* libhfs.a */; };
+		AAF22F852B52FB30007F521F /* LsCommand.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF22F842B52FB30007F521F /* LsCommand.m */; };
+		AAF22F882B52FE4A007F521F /* errors.m in Sources */ = {isa = PBXBuildFile; fileRef = AAF22F872B52FE4A007F521F /* errors.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +30,11 @@
 		AAB6E0182B4B6DAB00F60FAB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		AAB6E01F2B4B6DF700F60FAB /* libhfs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = libhfs; sourceTree = "<group>"; };
 		AAB6E0222B4B832600F60FAB /* libhfs.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhfs.a; path = libhfs/libhfs.a; sourceTree = "<group>"; };
+		AAF22F822B52FA8D007F521F /* Command.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Command.h; sourceTree = "<group>"; };
+		AAF22F832B52FB30007F521F /* LsCommand.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LsCommand.h; sourceTree = "<group>"; };
+		AAF22F842B52FB30007F521F /* LsCommand.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LsCommand.m; sourceTree = "<group>"; };
+		AAF22F862B52FE4A007F521F /* errors.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = errors.h; sourceTree = "<group>"; };
+		AAF22F872B52FE4A007F521F /* errors.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = errors.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +72,11 @@
 			isa = PBXGroup;
 			children = (
 				AAB6E0182B4B6DAB00F60FAB /* main.m */,
+				AAF22F822B52FA8D007F521F /* Command.h */,
+				AAF22F832B52FB30007F521F /* LsCommand.h */,
+				AAF22F842B52FB30007F521F /* LsCommand.m */,
+				AAF22F862B52FE4A007F521F /* errors.h */,
+				AAF22F872B52FE4A007F521F /* errors.m */,
 			);
 			path = cli;
 			sourceTree = "<group>";
@@ -141,6 +153,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAF22F882B52FE4A007F521F /* errors.m in Sources */,
+				AAF22F852B52FB30007F521F /* LsCommand.m in Sources */,
 				AAB6E0192B4B6DAB00F60FAB /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
