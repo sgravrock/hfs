@@ -11,11 +11,12 @@
 static void usage(const char *progname);
 static void hfs_perror(const char *prefix);
 static hfsvol *mount_first_partition(const char *path, int hfs_mode);
-static BOOL ls(hfsvol *vol, NSString *dir_path);
+static void inner_cli(hfsvol *vol);
+static void inner_usage(void);
+static NSString *readline(void);
+static void ls(hfsvol *vol, NSString *dir_path);
 
 int main(int argc, const char * argv[]) {
-    BOOL ok = YES;
-    
     @autoreleasepool {
         if (argc < 2) {
             usage(argv[0]);
@@ -35,20 +36,24 @@ int main(int argc, const char * argv[]) {
             partitionNum = (int)tmp;
         }
         
-        hfsvol *vol = partitionNum == -1
-            ? mount_first_partition(path, HFS_MODE_RDONLY)
-            : hfs_mount(path, partitionNum, HFS_MODE_RDONLY);
+        hfsvol *vol;
         
-        if (!vol) {
-            hfs_perror(path);
-            return EXIT_FAILURE;
+        if (partitionNum == -1) {
+            vol = mount_first_partition(path, HFS_MODE_RDONLY); // exits on failure
+        } else {
+            vol = hfs_mount(path, partitionNum, HFS_MODE_RDONLY);
+            
+            if (!vol) {
+                hfs_perror(path);
+                return EXIT_FAILURE;
+            }
         }
 
-        ok = ls(vol, @":");
+        inner_cli(vol);
         hfs_umount(vol);
     }
 
-    return ok ? 0 : EXIT_FAILURE;
+    return 0;
 }
 
 static void usage(const char *progname) {
@@ -85,17 +90,67 @@ static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
     exit(EXIT_FAILURE);
 }
 
-static BOOL ls(hfsvol *vol, NSString *dir_path) {
-    BOOL ok = YES;
-    hfsdirent dirent;
+static void inner_cli(hfsvol *vol) {
+    NSString *cmd;
+    printf("> ");
+    fflush(stdout);
     
-    hfsdir *dir = hfs_opendir(vol, [dir_path cStringUsingEncoding:NSMacOSRomanStringEncoding]);
+    while ((cmd = readline()) != NULL) {
+        if ([cmd isEqualToString:@"ls"]) {
+            ls(vol, @":");
+        } else if ([cmd hasPrefix:@"ls "] && cmd.length > 3) {
+            NSString *path = [cmd substringFromIndex: 3];
+            ls(vol, path);
+        } else {
+            inner_usage();
+        }
+        
+        printf("> ");
+        fflush(stdout);
+    }
+}
+
+static void inner_usage(void) {
+    puts("Commands:");
+    puts("ls                   list the root directory");
+    puts("ls :dir1:dir2:dir3   list a specific directory");
+    puts("help                 show this help");
+    puts("");
+    puts("ctrl-d to exit");
+}
+
+static NSString *readline(void) {
+    // Just use a big buffer and bail if the command doesn't fit.
+    // This is easier than trying to deal with scenarios where e.g a Unicode character
+    // is split between two reads, and the internal CLI is temporary anyway.
+    const int bufsz = 1024; // fairly arbitrary
+    char buf[bufsz];
     
-    if (!dir) {
-        hfs_perror([dir_path UTF8String]);
-        return NO;
+    if (!fgets(buf, bufsz, stdin)) {
+        return nil;
     }
     
+    char *nl = strchr(buf, '\n');
+    
+    if (!nl) {
+        fprintf(stderr, "Command too long\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    *nl = '\0';
+    return [NSString stringWithUTF8String:buf];
+}
+
+static void ls(hfsvol *vol, NSString *dir_path) {
+    hfsdirent dirent;
+
+    hfsdir *dir = hfs_opendir(vol, [dir_path cStringUsingEncoding:NSMacOSRomanStringEncoding]);
+
+    if (!dir) {
+        hfs_perror([dir_path UTF8String]);
+        return;
+    }
+
     while (hfs_readdir(dir, &dirent) == 0) {
         NSString *path;
         NSString *name = [NSString stringWithCString:dirent.name encoding:NSMacOSRomanStringEncoding];
@@ -115,23 +170,17 @@ static BOOL ls(hfsvol *vol, NSString *dir_path) {
         } else {
             path = [NSString stringWithFormat:@"%@:%@", dir_path, name];
         }
-        
+
         if ([path canBeConvertedToEncoding:NSUTF8StringEncoding]) {
             printf("%s (%s)\n", [path UTF8String], dirent.flags & HFS_ISDIR ? "dir" : "file");
         } else {
             printf("(don't know how to print this) (%s)\n", dirent.flags & HFS_ISDIR ? "dir" : "file");
         }
-        
-        if (dirent.flags & HFS_ISDIR) {
-            ls(vol, path);
-        }
     }
-    
+
     if (errno != ENOENT) {
         hfs_perror(dir_path ? [dir_path UTF8String] : "root");
-        ok = NO;
     }
-    
+
     hfs_closedir(dir);
-    return ok;
 }
