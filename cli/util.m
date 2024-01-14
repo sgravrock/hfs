@@ -35,3 +35,7 @@ NSString *qualify_path(NSString *path) {
     
     return path;
 }
+
+NSString *osx_resource_fork_path(NSString *filePath) {
+    return [NSString stringWithFormat:@"%@/..namedfork/rsrc", filePath];
+}

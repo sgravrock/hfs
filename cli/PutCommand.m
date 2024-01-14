@@ -19,6 +19,8 @@
 - (BOOL)executeOnVolume:(nonnull hfsvol *)vol withArgs:(nonnull NSArray<NSString *> *)args {
     BOOL textMode;
     
+    // TODO: Get the type and creator from the source file if present
+    
     if (args.count == 4) {
         textMode = NO;
     } else if (args.count == 5 && [args[4] isEqualToString:@"--text"]) {
@@ -33,18 +35,10 @@
     NSString *type = args[2];
     NSString *creator = args[3];
 
-    return copy_in_data_fork(vol, srcPath, destPath, type, creator, textMode);
+    return copy_in(vol, srcPath, destPath, type, creator, textMode);
 }
 
-static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, NSString *type, NSString *creator, BOOL textMode) {
-    NSError *error = nil;
-    NSData *srcContents = [NSData dataWithContentsOfFile:srcPath options:0 error:&error];
-    
-    if (!srcContents) {
-        fprintf(stderr, "%s\n", [[error localizedDescription] UTF8String]);
-        return NO;
-    }
-    
+static BOOL copy_in(hfsvol *vol, NSString *srcPath, NSString *destPath, NSString *type, NSString *creator, BOOL textMode) {
     hfsfile *destFile = hfs_create(vol, [destPath cStringUsingEncoding:NSMacOSRomanStringEncoding], [type UTF8String], [creator UTF8String]);
     
     if (!destFile) {
@@ -52,12 +46,27 @@ static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath
         return NO;
     }
     
+    // TODO try to clean up dest file on failure (here and in GetCommand)
+    
+    if (!copy_in_data_fork(vol, srcPath, destPath, destFile, textMode)) {
+        hfs_close(destFile);
+        return NO;
+    }
+    
+    NSString *srcResPath = osx_resource_fork_path(srcPath);
+    FILE *srcResFp = fopen([srcResPath UTF8String], "rb");
     BOOL ok;
-
-    if (textMode) {
-        ok = copy_in_text(srcPath, srcContents, destPath, destFile);
+    
+    if (!srcResFp) {
+        if (errno == ENOENT) {
+            ok = YES; // no resource fork
+        } else {
+            perror([srcResPath UTF8String]);
+            ok = NO;
+        }
     } else {
-        ok = copy_in_raw(srcContents, destPath, destFile);
+        ok = copy_in_resource_fork(vol, srcResPath, destPath, srcResFp, destFile);
+        fclose(srcResFp);
     }
     
     if (hfs_close(destFile) == -1) {
@@ -67,6 +76,49 @@ static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath
     
     return ok;
 }
+
+static BOOL copy_in_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, hfsfile *destFile, BOOL textMode) {
+    if (hfs_setfork(destFile, DATA_FORK) == -1) {
+        hfs_perror(destPath);
+        return NO;
+    }
+
+    NSError *error = nil;
+    NSData *srcContents = [NSData dataWithContentsOfFile:srcPath options:0 error:&error];
+    
+    if (!srcContents) {
+        fprintf(stderr, "%s\n", [[error localizedDescription] UTF8String]);
+        return NO;
+    }
+        
+    BOOL ok;
+
+    if (textMode) {
+        ok = copy_in_text(srcPath, srcContents, destPath, destFile);
+    } else {
+        ok = copy_in_raw(srcContents, destPath, destFile);
+    }
+        
+    return ok;
+}
+
+static BOOL copy_in_resource_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, FILE *srcFile, hfsfile *destFile) {
+    if (hfs_setfork(destFile, RESOURCE_FORK) == -1) {
+        hfs_perror(destPath);
+        return NO;
+    }
+
+    NSError *error = nil;
+    NSData *srcContents = [NSData dataWithContentsOfFile:srcPath options:0 error:&error];
+    
+    if (!srcContents) {
+        fprintf(stderr, "%s\n", [[error localizedDescription] UTF8String]);
+        return NO;
+    }
+    
+    return copy_in_raw(srcContents, destPath, destFile);
+}
+
 
 static BOOL copy_in_raw(NSData *srcContents, NSString *destPath, hfsfile *destFile) {
     if (hfs_write(destFile, srcContents.bytes, srcContents.length) == -1) {

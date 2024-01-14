@@ -47,7 +47,7 @@ static BOOL ls(hfsvol *vol, NSString *dir_path) {
         }
         
         if (dirent.flags & HFS_ISDIR) {
-            puts("(dir)\n");
+            puts("(dir)");
         } else {
             printf("(type=%s creator=%s)\n", dirent.u.file.type, dirent.u.file.creator);
         }

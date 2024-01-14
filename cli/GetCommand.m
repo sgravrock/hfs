@@ -30,17 +30,48 @@
     }
     
     srcPath = qualify_path(args[0]);
-    destPath = args[1];    
-    return copy_out_data_fork(vol, srcPath, destPath, textMode);
+    destPath = args[1];
+    return copy_out(vol, srcPath, destPath, textMode);
 }
 
-static BOOL copy_out_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, BOOL textMode) {
-    // TODO: Consider auto-detecting text files. Look at hfsutils's automode_hfs.
+// TODO: Consider auto-detecting text files. Look at hfsutils's automode_hfs.
+static BOOL copy_out(hfsvol *vol, NSString *srcPath, NSString *destPath, BOOL textMode) {
     hfsfile *srcFile = hfs_open(vol, [srcPath cStringUsingEncoding:NSMacOSRomanStringEncoding]);
     
     if (!srcFile) {
         hfs_perror(srcPath);
-        return NO;   
+        return NO;
+    }
+        
+    if (!copy_out_data_fork(vol, srcPath, destPath, srcFile, textMode)) {
+        hfs_close(srcFile);
+        return NO;
+    }
+    
+    // Copy the resource fork if it exists
+    
+    hfsdirent dirent;
+    if (hfs_fstat(srcFile, &dirent) == -1) {
+        hfs_perror(srcPath);
+        hfs_close(srcFile);
+        return NO;
+    }
+
+    if (dirent.u.file.rsize > 0) {
+        if (!copy_out_resource_fork(vol, srcPath, destPath, srcFile)) {
+            hfs_close(srcFile);
+            return NO;
+        }
+    }
+    
+    hfs_close(srcFile);
+    return YES;
+}
+
+static BOOL copy_out_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, hfsfile *srcFile, BOOL textMode) {
+    if (hfs_setfork(srcFile, DATA_FORK) == -1) {
+        hfs_perror(srcPath);
+        return NO;
     }
     
     FILE *destFile = fopen([destPath UTF8String], "wxb");
@@ -64,7 +95,26 @@ static BOOL copy_out_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPat
         ok = NO;
     }
     
-    hfs_close(srcFile);
+    return ok;
+}
+
+static BOOL copy_out_resource_fork(hfsvol *vol, NSString *srcPath, NSString *destPath, hfsfile *srcFile) {
+    if (hfs_setfork(srcFile, RESOURCE_FORK) == -1) {
+        hfs_perror(srcPath);
+        return NO;
+    }
+
+    NSString *destResPath = osx_resource_fork_path(destPath);
+    
+    FILE *destFile = fopen([destResPath UTF8String], "wxb");
+    
+    if (!destFile) {
+        perror([destResPath UTF8String]);
+        return NO;
+    }
+    
+    BOOL ok = copy_out_raw(srcPath, destResPath, srcFile, destFile);
+    fclose(destFile);
     return ok;
 }
 
