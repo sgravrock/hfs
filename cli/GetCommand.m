@@ -1,4 +1,5 @@
 #import "GetCommand.h"
+#import <sys/xattr.h>
 #import "util.h"
 #import "../libhfs/hfs.h"
 
@@ -42,13 +43,6 @@ static BOOL copy_out(hfsvol *vol, NSString *srcPath, NSString *destPath, BOOL te
         hfs_perror(srcPath);
         return NO;
     }
-        
-    if (!copy_out_data_fork(vol, srcPath, destPath, srcFile, textMode)) {
-        hfs_close(srcFile);
-        return NO;
-    }
-    
-    // Copy the resource fork if it exists
     
     hfsdirent dirent;
     if (hfs_fstat(srcFile, &dirent) == -1) {
@@ -56,7 +50,13 @@ static BOOL copy_out(hfsvol *vol, NSString *srcPath, NSString *destPath, BOOL te
         hfs_close(srcFile);
         return NO;
     }
-
+    
+    if (!copy_out_data_fork(vol, srcPath, destPath, srcFile, textMode)) {
+        hfs_close(srcFile);
+        return NO;
+    }
+    
+    // Copy the resource fork if it exists
     if (dirent.u.file.rsize > 0) {
         if (!copy_out_resource_fork(vol, srcPath, destPath, srcFile)) {
             hfs_close(srcFile);
@@ -65,6 +65,18 @@ static BOOL copy_out(hfsvol *vol, NSString *srcPath, NSString *destPath, BOOL te
     }
     
     hfs_close(srcFile);
+    
+    // Set type and creator
+    char attr[XATTR_FINDERINFO_LENGTH];
+    bzero(attr, sizeof(attr));
+    memcpy(attr, dirent.u.file.type, 4);
+    memcpy(attr + 4, dirent.u.file.creator, 4);
+    
+    if (setxattr([destPath UTF8String], XATTR_FINDERINFO_NAME, attr, sizeof(attr), 0, XATTR_CREATE) == -1) {
+        perror("setxattr");
+        return NO;
+    }
+    
     return YES;
 }
 
@@ -78,7 +90,6 @@ static BOOL copy_out_data_fork(hfsvol *vol, NSString *srcPath, NSString *destPat
     
     if (!destFile) {
         perror([[NSString stringWithFormat:@"Open %@", destPath] UTF8String]);
-        hfs_close(srcFile);
         return NO;
     }
     

@@ -39,7 +39,7 @@ To list files: `hfs [hfs-path]`.
 
 To copy a file out of the HFS volume: `hfs get hfs-path local-path [--text]`
 
-To copy a file into the HFS volume: `put local-path hfs-path type creator [--text]`
+To copy a file into the HFS volume: `put local-path hfs-path type creator [--text | --type type:creator]`
 
 HFS paths use a colon (:) as the directory separator and are considered to be
 absolute regardless of whether or not they have a leading colon. The volume
@@ -62,8 +62,6 @@ software on.
 ## Planned improvements
 
 * Replace the CLI with a GUI
-* Read and write file type and creator on the OS X side
-* Don't require a type and creator when putting with --text
 * Better error reporting when the HFS volume can't be opened
 
 ## Known limitations
