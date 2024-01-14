@@ -45,8 +45,9 @@ HFS paths use a colon (:) as the directory separator and are considered to be
 absolute regardless of whether or not they have a leading colon. The volume
 name should not be included in the path.
 
-The get and put commands will convert the contents of the data fork between
-Unicode and Mac OS Roman if the `--text` flag is used.
+If the `--text` flag is used, the `get` and `put` commands will convert the
+contents of the data fork between Unicode and Mac OS Roman and between Unix
+and Macintosh line endings.
 
 ## Support, or lack thereof
 
