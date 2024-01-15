@@ -78,6 +78,18 @@ static NSArray<NSString *> *array_from_argv(const char **argv) {
 
 
 static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
+    // First, check to see if we can open the file ourselves. If we can't open the
+    // file at all, the error message from perror will be more useful than the one
+    // produced by hfs_mount.
+    int fd = open(path, hfs_mode == HFS_MODE_RDWR ? O_RDWR : O_RDONLY);
+    
+    if (fd == -1) {
+        perror(path);
+        return NULL;
+    }
+    
+    close(fd);
+    
     // Old Mac hard disk images can have an arbitrarily large number of partitions,
     // but in practice high numbers are rare and the vast majority of media will be
     // either floppy images (no partition table, libhfs models this as partition 0)
@@ -94,7 +106,7 @@ static hfsvol *mount_first_partition(const char *path, int hfs_mode) {
         }
     }
     
-    // TODO: better error reporting, particularly when the image/device file couldn't be opened
-    fprintf(stderr, "Could not find a partition in %s. Either this isn't a useable disk image or the partition number is too high\n", path);
+    hfs_perror([NSString stringWithUTF8String:path]);
+    fprintf(stderr, "Could not find a partition in %s. Either this isn't a useable disk image or the partition number is too high.\n", path);
     return NULL;
 }

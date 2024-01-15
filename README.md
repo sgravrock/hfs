@@ -62,7 +62,6 @@ software on.
 ## Planned improvements
 
 * Replace the CLI with a GUI
-* Better error reporting when the HFS volume can't be opened
 
 ## Known limitations
 
